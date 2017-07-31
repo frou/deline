@@ -81,11 +81,19 @@ describe('deline', () => {
     });
   });
 
-  it('can be used as a function', () => {
-    const arg = `
-      A test argument.
-    `;
-    expect(deline(arg)).to.eql('A test argument.');
+  describe('use as a normal function', () => {
+    it('removes newlines and indentation', () => {
+      const arg = `
+        A test argument.
+      `;
+      expect(deline(arg)).to.eql('A test argument.');
+    });
+
+    it('correctly treats its no longer "raw" string argument', () => {
+      const arg = 'these are backslashes, \\no\\t lf/tab escape sequences\\\\n';
+      expect(deline(arg)).to.eql(
+        'these are backslashes, \\no\\t lf/tab escape sequences\\\\n');
+    });
   });
 
   it('escapes backticks', () => {
@@ -97,5 +105,24 @@ describe('deline', () => {
       <p>Hello world!</p>\n
     `;
     expect(result).to.eql('<p>Hello world!</p>\n');
+  });
+
+  describe('word separator insertion', () => {
+    it('maintains word separation when needed', () => {
+      const result = deline`
+        going to
+        the moon
+      `;
+      expect(result).to.eql('going to the moon');
+    });
+
+    it('is elided immediately after explicit trailing whitespace', () => {
+      const result = deline`
+        we\tare\t
+        tab\tseparated.\n
+        true that
+      `;
+      expect(result).to.eql('we\tare\ttab\tseparated.\ntrue that');
+    });
   });
 });
