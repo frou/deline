@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 
 // eslint-disable-next-line import/no-unresolved, import/extensions
-import deline from '../build/deline';
+import deline from '../deline.js';
 
 describe('deline', () => {
   it('works without interpolation', () => {
@@ -124,5 +124,21 @@ describe('deline', () => {
       `;
       expect(result).to.eql('we\tare\ttab\tseparated.\ntrue that');
     });
+
+    it("doesn't separate values from strings", function() {
+      const result = deline`GT${85}`
+      expect(result).to.eql("GT85")
+    })
+
+    it("doesn't separate strings from values", function() {
+      const result = deline`${40}WD`
+      expect(result).to.eql("40WD")
+    })
+
+    it("doesn't separate values from values", function() {
+      const result = deline`${10*2}${97}`
+      expect(result).to.eql("2097")
+    })
+
   });
 });

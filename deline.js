@@ -3,6 +3,10 @@ const LF = '\n';
 
 const wordSeparator = ' ';
 
+function endsWithWhitespace(s) {
+  return /\s+$/.test(s)
+
+}
 function endsWithEscapedWhitespace(s) {
   return /\\(t|n)$/.test(s);
 }
@@ -10,15 +14,20 @@ function endsWithEscapedWhitespace(s) {
 function processString(s, isRaw) {
   // Each individual string consists of zero or more double-linefeed separated
   // "paragraphs".
-  const paragraphs = s.split(/\n{2,}/);
+  const paragraphs = s.split(/\n{2,}/).filter( p => p != "")
 
   // Processing causes each "paragraph" to be collapsed into a single line.
   const lines = paragraphs.map((para) => {
-    // An empty or effectively empty paragraph is meaningless.
-    let p = para.trim();
-    if (p === '') {
-      return null;
+    // // An empty or effectively empty paragraph is meaningless.
+    // let p = para
+
+    // TODO(DH): Before trimming, note whether it ended with /\n[ \t]*/ ?
+    let p = para.trim()
+    if (p === "") {
+      return null
     }
+    // let p = para.replace(/^\s+/, "")
+    // let p = para.replace(/\n\s*$/, "")
 
     // In the current paragraph, iteratively remove each real LF along with any
     // indentation that follows it.
@@ -43,6 +52,7 @@ function processString(s, isRaw) {
       p = p.replace(/\\`/g, '`');
     }
 
+    // TODO(DH): Add on the wordsep here?
     return p;
   });
 
@@ -52,7 +62,7 @@ function processString(s, isRaw) {
 function deline(strings, ...values) {
   const resultArr = [];
   let wordSeparatorNeeded = false;
-  const appendToResult = (s) => {
+  const appendToResult = (s, isWord) => {
     if (s === '') {
       return;
     }
@@ -60,7 +70,7 @@ function deline(strings, ...values) {
       resultArr.push(wordSeparator);
     }
     resultArr.push(s);
-    wordSeparatorNeeded = !endsWithEscapedWhitespace(s);
+    wordSeparatorNeeded = isWord && !endsWithEscapedWhitespace(s)
   };
 
   let stringsArr;
@@ -77,10 +87,10 @@ function deline(strings, ...values) {
   }
 
   stringsArr.forEach((s) => {
-    appendToResult(processString(s, raw));
+    appendToResult(processString(s, raw), true);
 
     if (values.length) {
-      appendToResult(values.shift().toString());
+      appendToResult(values.shift().toString(), false);
     }
   });
 
